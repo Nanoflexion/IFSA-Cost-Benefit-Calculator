@@ -1,8 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { calculate } from '../src/formulas';
+import { calculate, defaultValues } from '../src/formulas';
+import { SETTINGS } from '../src/config';
 
-describe('calculate', () => {
-  it('returns a series of years + 1 points', () => {
-    expect(calculate({ units: 100, years: 5, currentCost: 50 }).series).toHaveLength(6);
+describe('calculate (placeholder model)', () => {
+  const r = calculate(defaultValues());
+
+  it('produces one curve point per day, including day 0', () => {
+    expect(r.curve).toHaveLength(SETTINGS.maxDays + 1);
+  });
+
+  it('shows a positive saving with default inputs', () => {
+    expect(r.netSavings).toBeGreaterThan(0);
+  });
+
+  it('returns three segments per bar', () => {
+    expect(r.standard).toHaveLength(3);
+    expect(r.patch).toHaveLength(3);
   });
 });

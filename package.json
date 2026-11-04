@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:pages": "vite build --config vite.pages.config.ts"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",

@@ -1,9 +1,18 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="UTF-8" /><title>Calculator dev page</title></head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nanoflexion Cost-Benefit Calculator (Prototype)</title>
+    <style>
+      body { margin: 0; background: #e9eff0; }
+      .page { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    </style>
+  </head>
   <body>
-    <nanoflexion-calculator></nanoflexion-calculator>
+    <div class="page">
+      <nanoflexion-calculator></nanoflexion-calculator>
+    </div>
     <script type="module" src="/src/calculator-element.ts"></script>
-    <script type="module" src="/src/cost-chart.ts"></script>
   </body>
 </html>

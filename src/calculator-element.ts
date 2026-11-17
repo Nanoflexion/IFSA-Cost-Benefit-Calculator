@@ -193,7 +193,7 @@ export class NanoflexionCalculator extends LitElement {
   .help { position: relative; display: inline-flex; }
   .help-btn {
     padding: 0; width: 18px; height: 18px; border-radius: 50%;
-    border: 1px solid #555; background: #fff; color: #1f2328;
+    border: 1px solid #555; background: #e9f0f0; color: #1f2328;
     font-size: 0.7rem; font-weight: 700; line-height: 1; cursor: help;
   }
   .tip {

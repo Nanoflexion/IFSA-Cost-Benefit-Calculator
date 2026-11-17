@@ -31,6 +31,13 @@ export abstract class ChartBase extends LitElement {
       background: #fff; border: 1px solid #0f4a59; padding: 6px 8px;
       font-size: 0.8rem; line-height: 1.4; white-space: pre-line; border-radius: 6px;
     }
+    svg text.lbl-standard,
+    svg text.lbl-flat {
+      paint-order: stroke;
+      stroke: #e9f4f8;        /* match the card background */
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
   `;
 
   protected abstract draw(): void;

@@ -10,6 +10,17 @@ import { money, moneyCompact } from './formulas';
 
 export interface Point { day: number; value: number }
 
+function splitLabel(text: string, maxChars: number): string[] {
+  const lines: string[] = [];
+  let cur = '';
+  for (const word of text.split(/\s+/)) {
+    if (cur && (cur + ' ' + word).length > maxChars) { lines.push(cur); cur = word; }
+    else cur = (cur + ' ' + word).trim();
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
 @customElement('cost-line-chart')
 export class CostLineChart extends ChartBase {
   @property({ attribute: false }) curve: Point[] = [];
@@ -66,16 +77,54 @@ export class CostLineChart extends ChartBase {
       .attr('stroke', COLORS.patchLine).attr('stroke-width', 3)
       .transition().duration(300).attr('y1', d => y(d)).attr('y2', d => y(d));
 
-    // Line labels
+    // Line label
+    const narrow = w < 480;
+    const maxChars = Math.max(12, Math.floor((w - m.left - m.right) * 0.5 / 6.5));
     const mid = this.curve[Math.floor(this.curve.length * 0.6)];
-    svg.selectAll<SVGTextElement, number>('text.lbl-standard').data([0]).join('text')
-      .attr('class', 'lbl-standard').attr('text-anchor', 'end')
-      .attr('x', x(mid.day) - 8).attr('y', y(mid.value) - 10)
-      .style('fill', COLORS.standardLine).text(this.standardLabel);
-    svg.selectAll<SVGTextElement, number>('text.lbl-flat').data([0]).join('text')
-      .attr('class', 'lbl-flat').attr('text-anchor', 'end')
-      .attr('x', w - m.right).attr('y', y(this.flatLine) + 18)
-      .style('fill', COLORS.patchLine).text(this.flatLabel);
+
+    const drawLabel = (cls: string, show: boolean, x0: number, y0: number, text: string, color: string) => {
+      const t = svg.selectAll<SVGTextElement, number>(`text.${cls}`)
+        .data(show ? [0] : []).join('text')
+        .attr('class', cls)
+        .attr('text-anchor', 'end')
+        .attr('x', x0).attr('y', y0)
+        .style('fill', color);
+      t.selectAll('tspan')
+        .data(splitLabel(text, maxChars))
+        .join('tspan')
+        .attr('x', x0)
+        .attr('dy', (_, i) => (i === 0 ? 0 : '1.2em'))
+        .text(d => d);
+    };
+
+    drawLabel('lbl-standard', !narrow, x(mid.day) - 8, y(mid.value) - 10, this.standardLabel, COLORS.standardLine);
+    drawLabel('lbl-flat', !narrow, w - m.right, y(this.flatLine) + 18, this.flatLabel, COLORS.patchLine);
+
+    // Replaces labels with a legend for smaller screens
+    const legend = svg.selectAll<SVGGElement, number>('g.legend').data([0]).join('g')
+      .attr('class', 'legend')
+      .style('pointer-events', 'none');
+    legend.selectAll('*').remove();
+
+    if (narrow) {
+      let yy = m.top + 4;
+      [
+        { text: this.standardLabel, color: COLORS.standardLine },
+        { text: this.flatLabel, color: COLORS.patchLine },
+      ].forEach(item => {
+        const lines = splitLabel(item.text, maxChars);
+        legend.append('line')
+          .attr('x1', m.left + 8).attr('x2', m.left + 22)
+          .attr('y1', yy + 6).attr('y2', yy + 6)
+          .attr('stroke', item.color).attr('stroke-width', 3);
+        const t = legend.append('text')
+          .attr('x', m.left + 28).attr('y', yy + 10)
+          .style('fill', item.color);
+        lines.forEach((l, i) =>
+          t.append('tspan').attr('x', m.left + 28).attr('dy', i === 0 ? 0 : '1.2em').text(l));
+        yy += lines.length * 15 + 8;
+      });
+    }
 
     // Hover readout
     const guide = svg.selectAll<SVGLineElement, number>('line.guide').data([0]).join('line')

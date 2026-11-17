@@ -143,8 +143,10 @@ export class NanoflexionCalculator extends LitElement {
       --accent: #64ea81;
       font-family: ${unsafeCSS(FONT_STACK)};
       color: var(--text);
+      container-type: inline-size;
+      max-width: 100%;
     }
-    .calc { container-type: inline-size; background: var(--bg); padding: 24px; box-sizing: border-box }
+    .calc { background: var(--bg); padding: 24px; box-sizing: border-box }
     h1 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 500; }
     .sub { margin: 0 0 20px; font-size: 1rem; }
     .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
@@ -185,8 +187,11 @@ export class NanoflexionCalculator extends LitElement {
              border-radius: 6px; font: inherit; cursor: pointer; }
 
     @container (max-width: 720px) {
-      .grid { grid-template-columns: 1fr; }
-      .calc { padding: 16px; }
+      .calc { padding: 12px; }
+      .grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .panel { padding: 16px; gap: 18px; }
+      .card { padding: 12px; }
+      .right { gap: 12px; }
     }
 
   .label-group { display: flex; align-items: center; gap: 6px; }

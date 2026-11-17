@@ -1,5 +1,6 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { property, query } from 'lit/decorators.js';
+import { FONT_STACK } from './config';
 
 export abstract class ChartBase extends LitElement {
   @property() label = '';
@@ -10,16 +11,25 @@ export abstract class ChartBase extends LitElement {
   private ro?: ResizeObserver;
 
   static styles = css`
-    :host { display: block; }
+    :host {
+      display: block;
+      font-family: ${unsafeCSS(FONT_STACK)};
+    }
     .wrap { position: relative; }
     svg { display: block; width: 100%; height: auto; }
-    svg text { font-size: 13px; font-style: bold; fill: #000000; }
-    svg .domain .tick line { stroke: #000000; stroke-width: 1.5; }
-    svg text.total { font-size: 13px; font-weight: 700; }
+    svg text { font-family: inherit; font-size: 0.8rem; fill: #000000; }
+    svg .domain, svg .tick line { stroke: #000000; stroke-width: 1.5; }
+    svg text.total { font-size: 0.8rem; font-weight: 700; }
+    svg text.x-title,
+    svg text.y-title {
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+    svg .x-axis text { font-size: 0.8rem; }
     .tip {
       display: none; position: absolute; pointer-events: none; z-index: 2;
       background: #fff; border: 1px solid #0f4a59; padding: 6px 8px;
-      font-size: 12px; = line-height: 1.4; white-space: pre-line; border-radius: 6px;
+      font-size: 0.8rem; line-height: 1.4; white-space: pre-line; border-radius: 6px;
     }
   `;
 

@@ -1,6 +1,9 @@
+export const FONT_STACK = "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+
 export interface InputDef {
   id: string;
   label: string;
+  help?: string;
   min: number;
   max: number;
   step: number;
@@ -20,10 +23,18 @@ export const SETTINGS = {
 
 // PLACEHOLDERS!!
 export const INPUTS: InputDef[] = [
-  { id: 'patientsPerYear', label: 'Patients Treated Per Year', min: 50, max: 5000, step: 50, default: 500 },
-  { id: 'costPerDay', label: 'Cost Per Hospital Day (USD)', prefix: '$', min: 500, max: 5000, step: 100, default: 2500 },
-  { id: 'extraDays', label: 'Extra Days from Complications', suffix: 'days', min: 0, max: 15, step: 1, default: 4 },
-  { id: 'patchCost', label: 'Patch Cost Per Patient (USD)', prefix: '$', min: 50, max: 2000, step: 50, default: 400 },
+  { id: 'patientsPerYear', label: 'Patients treated per year',
+    help: 'The number of patients at your facility each year who could use the patch. Use your own annual patient volume.',
+    min: 50, max: 5000, step: 50, default: 500 },
+  { id: 'costPerDay', label: 'Cost per hospital day', prefix: '$',
+    help: 'What one extra day in the hospital costs your facility, including staff, room, and supplies.',
+    min: 500, max: 5000, step: 100, default: 2500 },
+  { id: 'extraDays', label: 'Extra days from complications', suffix: 'days',
+    help: 'The average number of additional hospital days a patient needs when a complication occurs.',
+    min: 0, max: 15, step: 1, default: 4 },
+  { id: 'patchCost', label: 'Patch cost per patient', prefix: '$',
+    help: 'The price of one Nanoflexion patch for one patient.',
+    min: 50, max: 2000, step: 50, default: 400 },
 ];
 
 // PLACEHOLDERS!!
@@ -49,14 +60,18 @@ export const COPY = {
   barTitle: 'Projected cost per patient',
   yAxisLine: 'Cost per Patient ($)',
   yAxisBar: 'Total Cost per Patient ($)',
+  lineDescription:
+    'Shows how the cost of a standard patient grows with each extra day in the hospital, compared with the flat cost when using the Nanoflexion patch.',
+  barDescription:
+    'Compares the total projected cost per patient with and without the patch. Hover over or tap a section of a bar to see the cost breakdown.',
 };
 
 export const COLORS = {
-  base: '#37464d',
-  extended: '#126a7d',
-  other: '#2ca1bc',
-  device: '#4dc5a1',
-  otherPatch: '#2ca1bc',
+  base: '#225ea8',
+  extended: '#a1dab4',
+  other: '#41b6c4',
+  device: '#edf8b1',
+  otherPatch: '#41b6c4',
   standardLine: '#399d8c',
   patchLine: '#0f4a59',
 };

@@ -85,7 +85,7 @@ export class NanoflexionCalculator extends LitElement {
     const perPatientSaving = total(r.standard) - total(r.patch);
     return html`
       <section class="calc">
-        <h2>${fill(COPY.title)}</h2>
+        <h1>${fill(COPY.title)}</h1>
         <p class="sub">${fill(COPY.subtitle)}</p>
 
         <div class="grid">
@@ -145,7 +145,7 @@ export class NanoflexionCalculator extends LitElement {
       color: var(--text);
     }
     .calc { container-type: inline-size; background: var(--bg); padding: 24px; box-sizing: border-box }
-    h2 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 500; }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 500; }
     .sub { margin: 0 0 20px; font-size: 1rem; }
     .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
     .panel { background: var(--panel); padding: 45px 24px 45px 24px; display: flex; flex-direction: column; gap: 22px; color: #ffffff; font-style: bold; }
@@ -157,7 +157,7 @@ export class NanoflexionCalculator extends LitElement {
     .result-value { font-size: 2rem; font-weight: 700; margin-top: 6px; color: #ffffff;}
 
     .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 1rem; margin-bottom: 6px; }
-    .box { display: inline-flex; align-items: center; gap: 2px; background: #5f919e; border: 1px solid #cbc9c9;
+    .box { display: inline-flex; align-items: center; gap: 2px; background: #3A585F; border: 1px solid #cbc9c9;
            border-radius: 3px; padding: 1px 6px; font-size: 0.9rem; white-space: nowrap; }
     .box input { width: 6ch; border: 0; background: transparent; text-align: right; font: inherit; color: inherit;
                  -moz-appearance: textfield; }

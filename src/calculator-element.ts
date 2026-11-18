@@ -100,20 +100,6 @@ export class NanoflexionCalculator extends LitElement {
             </div>
 
             <div class="card">
-              <h3 class="chart-title">${COPY.lineTitle}</h3>
-              <p class="chart-desc">${COPY.lineDescription}</p>
-              <cost-line-chart
-                label="Line chart: standard patient cost rises with days in hospital, patch cost stays flat"
-                .curve=${r.curve}
-                .flatLine=${r.patchLine}
-                .standardLabel=${COPY.lineStandard}
-                .flatLabel=${COPY.linePatch}
-                .xLabel=${COPY.xAxisDays}
-                .yLabel=${COPY.yAxisLine}
-                .showTicks=${SETTINGS.showYTicks}></cost-line-chart>
-            </div>
-
-            <div class="card">
               <h3 class="chart-title">${COPY.barTitle}</h3>
               <p class="chart-desc">${COPY.barDescription}</p>
               <p class="chart-summary" aria-live="polite">
@@ -128,6 +114,20 @@ export class NanoflexionCalculator extends LitElement {
                   { label: COPY.barStandard, segments: r.standard },
                   { label: COPY.barPatch, segments: r.patch },
                 ]}></stacked-bar-chart>
+            </div>
+
+            <div class="card">
+              <h3 class="chart-title">${COPY.lineTitle}</h3>
+              <p class="chart-desc">${COPY.lineDescription}</p>
+              <cost-line-chart
+                label="Line chart: standard patient cost rises with days in hospital, patch cost stays flat"
+                .curve=${r.curve}
+                .flatLine=${r.patchLine}
+                .standardLabel=${COPY.lineStandard}
+                .flatLabel=${COPY.linePatch}
+                .xLabel=${COPY.xAxisDays}
+                .yLabel=${COPY.yAxisLine}
+                .showTicks=${SETTINGS.showYTicks}></cost-line-chart>
             </div>
           </div>
         </div>

@@ -11,11 +11,16 @@ export interface Segment {
 }
 
 export interface Results {
-  netSavings: number;
-  standard: Segment[];                          // stacked bar 1
-  patch: Segment[];                             // stacked bar 2
-  curve: { day: number; value: number }[];      // standard cost vs. days
-  patchLine: number;                            // flat patch cost
+  netSavings: number;        // headline: annual savings × years
+  annualSavings: number;
+  monthlySavings: number;
+  roi: number;               // percent
+  leaksPrevented: number;    // per year
+  bedDaysSaved: number;      // per year (operational output, never priced)
+  standard: Segment[];       // bar 1: expected monthly cost, no patch
+  patch: Segment[];          // bar 2: expected monthly cost, with patch
+  curve: { day: number; value: number }[];
+  patchLine: number;
 }
 
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -26,38 +31,64 @@ export const moneyCompact = (n: number) => usdCompact.format(n);
 export const defaultValues = (): Values =>
   Object.fromEntries(INPUTS.map(i => [i.id, i.default]));
 
-const sum = (segs: Segment[]) => segs.reduce((s, d) => s + d.value, 0);
-
-// PLACEHOLDER FUNCTIONS!!
 export function calculate(v: Values): Results {
   const C = CONSTANTS;
+  const m = v.proceduresPerMonth;
+  const N = C.monthsPerYear * m;          // procedures per year
+  const p = v.leakRate / 100;             // % to probability
+  const CL = v.leakCost;
+  const P = v.patchPrice;
+  const { leakReduction: e, patchesPerCase: q, implementationCost: I } = C;
 
-  const baseCost = v.costPerDay * C.baseStayDays;
-  const extendedCost = v.costPerDay * v.extraDays;
+  // Monthly costs
+  const expectedLeaksMonth = m * p;                        // can be fractional
+  const baseMonth = m * C.baseSurgeryCost;
+  const leakCostMonth = expectedLeaksMonth * CL;           // no patch
+  const patchCostMonth = m * q * P + I / C.monthsPerYear;  // patches for every surgery
+  const residualLeakMonth = expectedLeaksMonth * (1 - e) * CL;
+  const monthlySavings = leakCostMonth - residualLeakMonth - patchCostMonth;
+
+  // Annual costs
+  const annualSavings = monthlySavings * C.monthsPerYear;
+  const patchProgramCost = patchCostMonth * C.monthsPerYear;
+  const roi = patchProgramCost > 0 ? (annualSavings / patchProgramCost) * 100 : 0;
+  const leaksPrevented = N * p * e;
+  const bedDaysSaved = leaksPrevented * (C.daysLeak - C.daysNoLeak);
+
+  // Bar segments
+  const base: Segment = {
+    key: 'base', label: 'Surgery cost without a leak', value: baseMonth, color: COLORS.base,
+    detail: `${m} surgeries × ${money(C.baseSurgeryCost)} = ${money(baseMonth)}`,
+  };
 
   const standard: Segment[] = [
-    { key: 'base', label: 'Base stay cost', value: baseCost, color: COLORS.base,
-      detail: `${money(v.costPerDay)}/day × ${C.baseStayDays} days = ${money(baseCost)}` },
-    { key: 'extended', label: 'Extended stay cost', value: extendedCost, color: COLORS.extended,
-      detail: `${money(v.costPerDay)}/day × ${v.extraDays} days = ${money(extendedCost)}` },
-    { key: 'other', label: 'Other treatment costs', value: C.otherCostStandard, color: COLORS.other },
+    ...(SETTINGS.showBaseCost ? [base] : []),
+    { key: 'extended', label: 'Expected leak cost', value: leakCostMonth, color: COLORS.extended,
+      detail: `${m} surgeries × ${v.leakRate}% leak rate × ${money(CL)} per leak = ${money(leakCostMonth)}` },
   ];
 
   const patch: Segment[] = [
-    { key: 'base', label: 'Base stay cost', value: baseCost, color: COLORS.base,
-      detail: `${money(v.costPerDay)}/day × ${C.baseStayDays} days = ${money(baseCost)}` },
-    { key: 'device', label: 'Nanoflexion patch cost', value: v.patchCost, color: COLORS.device },
-    { key: 'other', label: 'Other treatment costs', value: C.otherCostPatch, color: COLORS.otherPatch },
-  ];
+    ...(SETTINGS.showBaseCost ? [base] : []),
+    { key: 'device', label: 'Nanoflexion patch cost', value: patchCostMonth, color: COLORS.device,
+      detail: `${m} patches × ${money(P)} = ${money(m * q * P)}` },
+    { key: 'other', label: 'Remaining leak cost', value: residualLeakMonth, color: COLORS.otherPatch,
+      detail: `${m} × ${v.leakRate}% × (1 − ${e * 100}% prevented) × ${money(CL)} = ${money(residualLeakMonth)}` },
+  ].filter(s => s.value > 0);
 
-  const standardTotal = sum(standard);
-  const patchTotal = sum(patch);
-  const netSavings = (standardTotal - patchTotal) * v.patientsPerYear * SETTINGS.years;
+  // Line chart (PLACEHOLDER)
+  const d = C.daysLeak - C.daysNoLeak;
+  const curve = Array.from({ length: SETTINGS.maxDay - SETTINGS.minDay + 1 }, (_, i) => {
+    const day = SETTINGS.minDay + i;
+    return {
+      day,
+      value: C.baseSurgeryCost + Math.max(0, day - C.daysNoLeak) * (CL / d),
+    };
+  });
 
-  const curve = Array.from({ length: SETTINGS.maxDays + 1 }, (_, day) => ({
-    day,
-    value: C.startCost + v.costPerDay * day * (1 + C.curveGrowth * day),
-  }));
-
-  return { netSavings, standard, patch, curve, patchLine: patchTotal };
+  return {
+    netSavings: annualSavings * SETTINGS.years,
+    annualSavings, monthlySavings, roi, leaksPrevented, bedDaysSaved,
+    standard, patch, curve,
+    patchLine: C.baseSurgeryCost + q * P,
+  };
 }

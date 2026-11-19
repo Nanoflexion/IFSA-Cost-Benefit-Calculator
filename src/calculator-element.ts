@@ -103,7 +103,7 @@ export class NanoflexionCalculator extends LitElement {
               <h3 class="chart-title">${COPY.barTitle}</h3>
               <p class="chart-desc">${COPY.barDescription}</p>
               <p class="chart-summary" aria-live="polite">
-                With your inputs, the patch changes the cost per patient by
+                With your inputs, the patch changes the cost per month by
                 <strong>${money(perPatientSaving)}</strong>.
               </p>
               <stacked-bar-chart
@@ -129,6 +129,8 @@ export class NanoflexionCalculator extends LitElement {
                 .yLabel=${COPY.yAxisLine}
                 .showTicks=${SETTINGS.showYTicks}></cost-line-chart>
             </div>
+
+            <p class="disclaimer">${COPY.disclaimer}</p>
           </div>
         </div>
       </section>`;
@@ -220,5 +222,7 @@ export class NanoflexionCalculator extends LitElement {
   }
 
   .chart-summary { margin: 8px 0 0; font-size: 0.8rem; }
+
+  .disclaimer { margin: 12px 0 0; font-size: 0.75rem; line-height: 1.4; color: #333; }
   `;
 }

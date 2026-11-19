@@ -37,17 +37,21 @@ export class CostLineChart extends ChartBase {
     const m = { top: 16, right: 16, bottom: 48, left: this.showTicks ? 64 : 40 };
     const svg = select(this.svgEl).attr('viewBox', `0 0 ${w} ${h}`);
 
+    const minDay = this.curve[0].day;
     const maxDay = this.curve[this.curve.length - 1].day;
-    const x = scaleLinear().domain([0, maxDay]).range([m.left, w - m.right]);
-    const yMax = Math.max(this.flatLine, ...this.curve.map(d => d.value));
-    const y = scaleLinear().domain([0, yMax]).nice().range([h - m.bottom, m.top]);
+    const x = scaleLinear().domain([minDay, maxDay]).range([m.left, w - m.right]);
+    const values = [this.flatLine, ...this.curve.map(d => d.value)];
+    const yLo = Math.min(...values);
+    const yHi = Math.max(...values);
+    const pad = (yHi - yLo || 1) * 0.15;                 // breathing room above and below
+    const y = scaleLinear().domain([yLo - pad, yHi + pad]).nice().range([h - m.bottom, m.top]);
     const path = line<Point>().x(d => x(d.day)).y(d => y(d.value)).curve(curveMonotoneX);
 
     // Axes
     svg.selectAll<SVGGElement, number>('g.x-axis').data([0]).join('g')
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${h - m.bottom})`)
-      .call(axisBottom(x).ticks(Math.min(maxDay, 10)).tickFormat(d => String(d)));
+      .call(axisBottom(x).ticks(Math.min(maxDay - minDay, 8)).tickFormat(d => String(d)));
     svg.selectAll<SVGGElement, number>('g.y-axis').data([0]).join('g')
       .attr('class', 'y-axis')
       .attr('transform', `translate(${m.left},0)`)
@@ -138,7 +142,7 @@ export class CostLineChart extends ChartBase {
       .attr('fill', 'transparent').style('touch-action', 'pan-y')
       .on('pointermove', (e: PointerEvent) => {
         const [px] = pointer(e, this.svgEl);
-        const day = Math.max(0, Math.min(maxDay, Math.round(x.invert(px))));
+        const day = Math.max(minDay, Math.min(maxDay, Math.round(x.invert(px))));
         const p = this.curve.find(d => d.day === day);
         if (!p) return;
         guide.attr('x1', x(day)).attr('x2', x(day)).attr('opacity', 1);

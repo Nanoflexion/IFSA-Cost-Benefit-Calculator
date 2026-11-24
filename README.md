@@ -2,6 +2,8 @@
 
 To see the calculator, go to https://nanoflexion.github.io/IFSA-Cost-Benefit-Calculator/.
 
+To see the code for the Wix file, go to https://nanoflexion.github.io/IFSA-Cost-Benefit-Calculator/nanoflexion-calculator.js/.
+
 ## Set Up Instructions
 
 To set up the project, run:

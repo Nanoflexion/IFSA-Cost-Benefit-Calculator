@@ -20,4 +20,13 @@ describe('calculate (matches Nanoflexion formula PDF)', () => {
     const leak = (x: typeof a) => x.standard.find(s => s.key === 'extended')!.value;
     expect(leak(b) / leak(a)).toBeCloseTo(2, 5);
   });
+  it('expected stay without patch = 17.39 days', () =>
+  expect(r.avgStayStandard).toBeCloseTo(17.3871, 3));
+  it('expected stay with patch = 16.8 days', () =>
+    expect(r.avgStayPatch).toBeCloseTo(16.8, 3));
+  it('both bars include the same surgery cost segment', () => {
+  const base = (s: typeof r.standard) => s.find(x => x.key === 'base')!.value;
+  expect(base(r.standard)).toBeCloseTo(5 * 44308, 2);
+  expect(base(r.patch)).toBeCloseTo(5 * 44308, 2);
+});
 });

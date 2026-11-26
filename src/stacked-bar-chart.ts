@@ -32,16 +32,18 @@ export class StackedBarChart extends ChartBase {
   @property({ attribute: false }) groups: BarGroup[] = [];
   @property() yLabel = '$$$';
   @property({ type: Boolean, attribute: 'show-ticks' }) showTicks = false;
+  @property({ type: Number }) yMax = 0;   // 0 = fit to the data
 
   protected override draw() {
     if (!this.svgEl || this.width < 10) return;
     const w = this.width, h = SETTINGS.barChartHeight;
-    const m = { top: 28, right: 16, bottom: 72, left: this.showTicks ? 64 : 40 };
+    const m = { top: 28, right: 16, bottom: 58, left: this.showTicks ? 72 : 40 };
     const svg = select(this.svgEl).attr('viewBox', `0 0 ${w} ${h}`);
 
     const x = scaleBand().domain(this.groups.map(g => g.label))
       .range([m.left, w - m.right]).padding(0.5);
-    const yMax = Math.max(1, ...this.groups.map(g => g.segments.reduce((s, d) => s + d.value, 0)));
+    const dataMax = Math.max(1, ...this.groups.map(g => g.segments.reduce((s, d) => s + d.value, 0)));
+    const yMax = this.yMax > 0 ? this.yMax : dataMax;
     const y = scaleLinear().domain([0, yMax]).nice().range([h - m.bottom, m.top]);
 
     // Axes

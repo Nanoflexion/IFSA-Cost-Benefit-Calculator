@@ -20,7 +20,11 @@ export const SETTINGS = {
   showYTicks: true,
   minDay: 12,    // first day shown on the x-axis
   maxDay: 28,    // last day shown
-  showBaseCost: true,   // false = bars show only the costs that differ between scenarios
+  showBaseCost: true,    // starting view: true = with surgery cost, false = leak vs. patch only
+  barAxisHeadroom: {     // axis max = default-input bar height × this number
+  withSurgery: 2,
+  difference: 3,
+},
 };
 
 export const INPUTS: InputDef[] = [
@@ -59,8 +63,13 @@ export const COPY = {
   linePatch: 'Projected Patient Cost with Nanoflexion Patch',
   xAxisDays: 'Days in Hospital',
   lineTitle: 'Cost of a patient with a leak vs. days in hospital',
-  barTitle: 'Expected cost per month',
-  yAxisLine: 'Cost per Month ($)',
+  stayStandard: 'Average patient stay without patch',
+  stayPatch: 'Average patient stay with patch',
+  viewTotal: 'Total Costs',
+  viewDifference: 'Cost Difference Only',
+  yAxisBarExtra: 'Extra Cost per Month ($)',
+  barTitle: 'Expected savings per month:',
+  yAxisLine: 'Cost per Patient ($)',
   yAxisBar: 'Total Cost per Month ($)',
   lineDescription:
     'A patient who develops a leak costs more the longer they stay while a patched patient costs a fixed amount.',
@@ -71,12 +80,14 @@ export const COPY = {
 };
 
 export const COLORS = {
-  base: '#225ea8',
-  extended: '#a1dab4',
-  device: '#41b6c4',
+  base: '#a1dab4',
+  extended: '#41b6c4',
+  device: '#225ea8',
   otherPatch: '#41b6c4',
   standardLine: '#399d8c',
   patchLine: '#0f4a59',
 };
+
+
 
 export const fill = (s: string) => s.replace('{years}', String(SETTINGS.years));

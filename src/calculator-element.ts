@@ -1,7 +1,7 @@
 import { LitElement, html, css, unsafeCSS, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { COPY, FONT_STACK, INPUTS, SETTINGS, fill, type InputDef } from './config';
-import { calculate, defaultValues, money, type Values } from './formulas';
+import { calculate, defaultValues, money, type Values, type Segment } from './formulas';
 import './stacked-bar-chart';
 import './cost-line-chart';
 
@@ -10,6 +10,9 @@ export class NanoflexionCalculator extends LitElement {
   @state() private draft: Values = defaultValues();    // what the sliders show
   @state() private applied: Values = defaultValues();  // what the charts show
   @state() private openHelp: string | null = null;   // which tooltip is open (for tap/click)
+  @state() private showBase = SETTINGS.showBaseCost;
+
+  private reference = calculate(defaultValues());   // default-input results, for the fixed axis
 
   private setValue(def: InputDef, raw: number) {
     const n = Number.isFinite(raw) ? raw : def.default;
@@ -81,8 +84,25 @@ export class NanoflexionCalculator extends LitElement {
 
   override render() {
     const r = calculate(this.applied);
+    const sum = (segs: Segment[]) => segs.reduce((s, d) => s + d.value, 0);
+    const view = (segs: Segment[]) =>
+      this.showBase ? segs : segs.filter(s => s.key !== 'base');
+
+    const std = view(r.standard);
+    const pat = view(r.patch);
+
+    // Fixed axis: based on the default inputs, grows only if a bar would not fit
+    const refMax = Math.max(sum(view(this.reference.standard)), sum(view(this.reference.patch)));
+    const headroom = this.showBase
+      ? SETTINGS.barAxisHeadroom.withSurgery
+      : SETTINGS.barAxisHeadroom.difference;
+    const barAxisMax = Math.max(refMax * headroom, Math.max(sum(std), sum(pat)) * 1.1);
+
+    const legend = [...std, ...pat]
+      .filter((s, i, all) => all.findIndex(t => t.label === s.label) === i);
     const total = (segs: { value: number }[]) => segs.reduce((s, d) => s + d.value, 0);
-    const perPatientSaving = total(r.standard) - total(r.patch);
+    const savings = total(r.standard) - total(r.patch);
+    const perPatientSaving = Math.ceil(savings);
     return html`
       <section class="calc">
         <h1>${fill(COPY.title)}</h1>
@@ -100,25 +120,44 @@ export class NanoflexionCalculator extends LitElement {
             </div>
 
             <div class="card">
-              <h3 class="chart-title">${COPY.barTitle}</h3>
-              <p class="chart-desc">${COPY.barDescription}</p>
-              <p class="chart-summary" aria-live="polite">
-                With your inputs, the patch changes the cost per month by
-                <strong>${money(perPatientSaving)}</strong>.
+              <h3 class="chart-title">${COPY.barTitle} $${perPatientSaving}</h3>
+              <p class="chart-desc">
+                ${COPY.barDescription}
               </p>
+              <div class="toggle-wrap">
+                <div class="toggle" role="group" aria-label="Bar chart view">
+                  <button type="button" aria-pressed=${String(this.showBase)}
+                    @click=${() => (this.showBase = true)}>${COPY.viewTotal}</button>
+                  <button type="button" aria-pressed=${String(!this.showBase)}
+                    @click=${() => (this.showBase = false)}>${COPY.viewDifference}</button>
+                </div>
+              </div>
+
               <stacked-bar-chart
-                label="Stacked bar chart comparing projected patient cost with and without the patch"
-                .yLabel=${COPY.yAxisBar}
+                label="Stacked bar chart comparing projected monthly cost with and without the patch"
+                .yLabel=${this.showBase ? COPY.yAxisBar : COPY.yAxisBarExtra}
+                .yMax=${barAxisMax}
                 .showTicks=${SETTINGS.showYTicks}
                 .groups=${[
-                  { label: COPY.barStandard, segments: r.standard },
-                  { label: COPY.barPatch, segments: r.patch },
+                  { label: COPY.barStandard, segments: std },
+                  { label: COPY.barPatch, segments: pat },
                 ]}></stacked-bar-chart>
+
+              <ul class="legend">
+                ${legend.map(s => html`
+                  <li><span class="swatch" style="background:${s.color}"></span>${s.label}</li>`)}
+              </ul>
             </div>
 
             <div class="card">
               <h3 class="chart-title">${COPY.lineTitle}</h3>
               <p class="chart-desc">${COPY.lineDescription}</p>
+              <p class="stay-summary" aria-live="polite">
+                Expected hospital stay:
+                <strong>${r.avgStayStandard.toFixed(1)} days</strong> without the patch vs.
+                <strong>${r.avgStayPatch.toFixed(1)} days</strong> with it
+                (${(r.avgStayStandard - r.avgStayPatch).toFixed(1)} days shorter on average).
+              </p>
               <cost-line-chart
                 label="Line chart: standard patient cost rises with days in hospital, patch cost stays flat"
                 .curve=${r.curve}
@@ -221,7 +260,26 @@ export class NanoflexionCalculator extends LitElement {
     line-height: 1.4;
   }
 
-  .chart-summary { margin: 8px 0 0; font-size: 0.8rem; }
+  .chart-summary, .stay-summary { margin: 8px 0 0; font-size: 0.8rem; }
+
+  .toggle-wrap { display: flex; justify-content: center; margin-top: 25px;  }
+  .toggle { display: inline-flex; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .toggle button { padding: 6px 12px; background: transparent; border: 0; border-radius: 0; font-size: 0.8rem; cursor: pointer; }
+  .toggle button + button { border-left: 1px solid #333; }
+  .toggle button[aria-pressed='true'] { background: #0f4a59; color: #fff; }
+
+  .legend {
+    list-style: none;
+    margin: 2px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    font-size: 0.75rem;
+  }
+  .legend li { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 12px; height: 12px; border: 1px solid #333; flex: none; }
 
   .disclaimer { margin: 12px 0 0; font-size: 0.75rem; line-height: 1.4; color: #333; }
   `;

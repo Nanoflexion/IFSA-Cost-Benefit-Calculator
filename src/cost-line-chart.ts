@@ -34,7 +34,7 @@ export class CostLineChart extends ChartBase {
   protected override draw() {
     if (!this.svgEl || this.width < 10 || this.curve.length === 0) return;
     const w = this.width, h = SETTINGS.lineChartHeight;
-    const m = { top: 16, right: 16, bottom: 48, left: this.showTicks ? 64 : 40 };
+    const m = { top: 36, right: 16, bottom: 48, left: this.showTicks ? 72 : 40 };
     const svg = select(this.svgEl).attr('viewBox', `0 0 ${w} ${h}`);
 
     const minDay = this.curve[0].day;

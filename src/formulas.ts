@@ -21,6 +21,8 @@ export interface Results {
   patch: Segment[];          // bar 2: expected monthly cost, with patch
   curve: { day: number; value: number }[];
   patchLine: number;
+  avgStayStandard: number;   // expected days in hospital, no patch
+  avgStayPatch: number;      // expected days in hospital, with patch
 }
 
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -62,32 +64,38 @@ export function calculate(v: Values): Results {
   };
 
   const standard: Segment[] = [
-    ...(SETTINGS.showBaseCost ? [base] : []),
-    { key: 'extended', label: 'Expected leak cost', value: leakCostMonth, color: COLORS.extended,
-      detail: `${m} surgeries × ${v.leakRate}% leak rate × ${money(CL)} per leak = ${money(leakCostMonth)}` },
-  ];
+  base,
+  { key: 'extended', label: 'Expected leak cost', value: leakCostMonth, color: COLORS.extended,
+    detail: `${m} surgeries × ${v.leakRate}% leak rate × ${money(CL)} per leak = ${money(leakCostMonth)}` },
+];
 
-  const patch: Segment[] = [
-    ...(SETTINGS.showBaseCost ? [base] : []),
-    { key: 'device', label: 'Nanoflexion patch cost', value: patchCostMonth, color: COLORS.device,
-      detail: `${m} patches × ${money(P)} = ${money(m * q * P)}` },
-    { key: 'other', label: 'Remaining leak cost', value: residualLeakMonth, color: COLORS.otherPatch,
-      detail: `${m} × ${v.leakRate}% × (1 − ${e * 100}% prevented) × ${money(CL)} = ${money(residualLeakMonth)}` },
-  ].filter(s => s.value > 0);
+const patch: Segment[] = [
+  base,
+  { key: 'device', label: 'Nanoflexion patch cost', value: patchCostMonth, color: COLORS.device,
+    detail: `${m} patches × ${money(P)} = ${money(m * q * P)}` },
+  { key: 'other', label: 'Remaining leak cost', value: residualLeakMonth, color: COLORS.otherPatch,
+    detail: `${m} × ${v.leakRate}% × (1 − ${e * 100}% prevented) × ${money(CL)} = ${money(residualLeakMonth)}` },
+].filter(s => s.value > 0);
 
-  // Line chart (PLACEHOLDER)
-  const d = C.daysLeak - C.daysNoLeak;
-  const curve = Array.from({ length: SETTINGS.maxDay - SETTINGS.minDay + 1 }, (_, i) => {
-    const day = SETTINGS.minDay + i;
-    return {
-      day,
-      value: C.baseSurgeryCost + Math.max(0, day - C.daysNoLeak) * (CL / d),
-    };
-  });
+  // Expected length of stay (averages across all patients, not individual predictions)
+  const extraDays = C.daysLeak - C.daysNoLeak;
+  const avgStayStandard = C.daysNoLeak + p * extraDays;
+  const avgStayPatch = C.daysNoLeak + p * (1 - e) * extraDays;
+
+  // Line chart
+  const slope = CL / extraDays;   // allocated cost per extra day
+  const standardCost = (t: number) =>
+    C.baseSurgeryCost + Math.max(0, t - C.daysNoLeak) * slope;
+
+  const wholeDays = Array.from(
+    { length: SETTINGS.maxDay - SETTINGS.minDay + 1 }, (_, i) => SETTINGS.minDay + i);
+  const days = [...new Set([...wholeDays, C.daysNoLeak])].sort((a, b) => a - b);
+  const curve = days.map(day => ({ day, value: standardCost(day) }));
 
   return {
     netSavings: annualSavings * SETTINGS.years,
     annualSavings, monthlySavings, roi, leaksPrevented, bedDaysSaved,
+    avgStayStandard, avgStayPatch,
     standard, patch, curve,
     patchLine: C.baseSurgeryCost + q * P,
   };

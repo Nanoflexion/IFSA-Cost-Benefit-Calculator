@@ -33,13 +33,10 @@ export const INPUTS: InputDef[] = [
     min: 1, max: 100, step: 1, default: 5 },
   { id: 'leakRate', label: 'Baseline leak rate', suffix: '%',
     help: 'How often an anastomotic leak occurs today without the patch.',
-    min: 1, max: 20, step: 0.01, default: 6.18 },
+    min: 7, max: 20, step: 0.01, default: 7.18 },
   { id: 'leakCost', label: 'Added hospital cost per leak', prefix: '$',
     help: 'The extra hospital cost of one leak, including the longer stay and readmissions.',
-    min: 5000, max: 60000, step: 1, default: 28597 },
-  { id: 'patchPrice', label: 'Price per patch', prefix: '$',
-    help: 'What your facility would pay for one patch. One patch is used per surgery. The default of $500 is an illustrative price, not a Nanoflexion quote.',
-    min: 0, max: 3000, step: 10, default: 500 },
+    min: 30000, max: 60000, step: 1, default: 32597 },
 ];
 
 export const CONSTANTS = {
@@ -50,6 +47,7 @@ export const CONSTANTS = {
   baseSurgeryCost: 44308,    // C0: cost per surgery without a leak (Hammond 2014)
   daysNoLeak: 16.8,          // D0: total inpatient days, no leak
   daysLeak: 26.3,            // DL: total inpatient days, with a leak
+  patchPrice: 500         
 };
 
 export const COPY = {
@@ -57,8 +55,8 @@ export const COPY = {
   subtitle:
     'Change any figure to match your facility for an estimate on how much your facility can save in {years} years.',
   resultLabel: 'Potential Net {years}-Year Savings',
-  barStandard: 'Projected Cost with Existing Treatment',
-  barPatch: 'Projected Cost with Nanoflexion Patch',
+  barStandard: 'Existing Treatment',
+  barPatch: 'With Nanoflexion Patch',
   lineStandard: 'Standard Patient Cost with Leak',
   linePatch: 'Projected Patient Cost with Nanoflexion Patch',
   xAxisDays: 'Days in Hospital',
@@ -68,7 +66,7 @@ export const COPY = {
   viewTotal: 'Total Costs',
   viewDifference: 'Cost Difference Only',
   yAxisBarExtra: 'Extra Cost per Month ($)',
-  barTitle: 'Expected savings per month:',
+  barTitle: 'Expected monthly savings:',
   yAxisLine: 'Cost per Patient ($)',
   yAxisBar: 'Total Cost per Month ($)',
   lineDescription:

@@ -119,54 +119,57 @@ export class NanoflexionCalculator extends LitElement {
               <div class="result-value">${money(r.netSavings)}</div>
             </div>
 
-            <div class="card">
-              <h3 class="chart-title">${COPY.barTitle} $${perPatientSaving}</h3>
-              <p class="chart-desc">
-                ${COPY.barDescription}
-              </p>
-              <div class="toggle-wrap">
-                <div class="toggle" role="group" aria-label="Bar chart view">
-                  <button type="button" aria-pressed=${String(this.showBase)}
-                    @click=${() => (this.showBase = true)}>${COPY.viewTotal}</button>
-                  <button type="button" aria-pressed=${String(!this.showBase)}
-                    @click=${() => (this.showBase = false)}>${COPY.viewDifference}</button>
+            <div class="charts">
+              <div class="card">
+                <h3 class="chart-title">${COPY.barTitle} $${perPatientSaving}</h3>
+                <p class="chart-desc">
+                  ${COPY.barDescription}
+                </p>
+                <div class="toggle-wrap">
+                  <div class="toggle" role="group" aria-label="Bar chart view">
+                    <button type="button" aria-pressed=${String(this.showBase)}
+                      @click=${() => (this.showBase = true)}>${COPY.viewTotal}</button>
+                    <button type="button" aria-pressed=${String(!this.showBase)}
+                      @click=${() => (this.showBase = false)}>${COPY.viewDifference}</button>
+                  </div>
                 </div>
+
+                <stacked-bar-chart
+                  label="Stacked bar chart comparing projected monthly cost with and without the patch"
+                  .yLabel=${this.showBase ? COPY.yAxisBar : COPY.yAxisBarExtra}
+                  .yMax=${barAxisMax}
+                  .showTicks=${SETTINGS.showYTicks}
+                  .groups=${[
+                    { label: COPY.barStandard, segments: std },
+                    { label: COPY.barPatch, segments: pat },
+                  ]}></stacked-bar-chart>
+
+                <ul class="legend">
+                  ${legend.map(s => html`
+                    <li><span class="swatch" style="background:${s.color}"></span>${s.label}</li>`)}
+                </ul>
               </div>
 
-              <stacked-bar-chart
-                label="Stacked bar chart comparing projected monthly cost with and without the patch"
-                .yLabel=${this.showBase ? COPY.yAxisBar : COPY.yAxisBarExtra}
-                .yMax=${barAxisMax}
-                .showTicks=${SETTINGS.showYTicks}
-                .groups=${[
-                  { label: COPY.barStandard, segments: std },
-                  { label: COPY.barPatch, segments: pat },
-                ]}></stacked-bar-chart>
-
-              <ul class="legend">
-                ${legend.map(s => html`
-                  <li><span class="swatch" style="background:${s.color}"></span>${s.label}</li>`)}
-              </ul>
-            </div>
-
-            <div class="card">
-              <h3 class="chart-title">${COPY.lineTitle}</h3>
-              <p class="chart-desc">${COPY.lineDescription}</p>
-              <p class="stay-summary" aria-live="polite">
-                Expected hospital stay:
-                <strong>${r.avgStayStandard.toFixed(1)} days</strong> without the patch vs.
-                <strong>${r.avgStayPatch.toFixed(1)} days</strong> with it
-                (${(r.avgStayStandard - r.avgStayPatch).toFixed(1)} days shorter on average).
-              </p>
-              <cost-line-chart
-                label="Line chart: standard patient cost rises with days in hospital, patch cost stays flat"
-                .curve=${r.curve}
-                .flatLine=${r.patchLine}
-                .standardLabel=${COPY.lineStandard}
-                .flatLabel=${COPY.linePatch}
-                .xLabel=${COPY.xAxisDays}
-                .yLabel=${COPY.yAxisLine}
-                .showTicks=${SETTINGS.showYTicks}></cost-line-chart>
+              <div class="card">
+                <h3 class="chart-title">${COPY.lineTitle}</h3>
+                <p class="chart-desc">${COPY.lineDescription}</p>
+                <p class="stay-summary" aria-live="polite">
+                  Expected hospital stay:
+                  <strong>${r.avgStayStandard.toFixed(1)} days</strong> without the patch vs.
+                  <strong>${r.avgStayPatch.toFixed(1)} days</strong> with it
+                  (${(r.avgStayStandard - r.avgStayPatch).toFixed(1)} days shorter on average).
+                </p>
+                <cost-line-chart
+                  label="Line chart: standard patient cost rises with days in hospital, patch cost stays flat"
+                  .curve=${r.curve}
+                  .flatLine=${r.patchLine}
+                  .standardLabel=${COPY.lineStandard}
+                  .flatLabel=${COPY.linePatch}
+                  .xLabel=${COPY.xAxisDays}
+                  .yLabel=${COPY.yAxisLine}
+                  .showTicks=${SETTINGS.showYTicks}></cost-line-chart>
+                  <div></div>
+              </div>
             </div>
 
             <p class="disclaimer">${COPY.disclaimer}</p>
@@ -190,8 +193,25 @@ export class NanoflexionCalculator extends LitElement {
     .calc { background: var(--bg); padding: 24px; box-sizing: border-box }
     h1 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 500; }
     .sub { margin: 0 0 20px; font-size: 1rem; }
-    .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
-    .panel { background: var(--panel); padding: 45px 24px 45px 24px; display: flex; flex-direction: column; gap: 22px; color: #ffffff; font-style: bold; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);  /* skinny inputs, charts take the rest */
+      gap: clamp(12px, 2cqi, 20px);
+      align-items: start;
+    }
+      
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: clamp(12px, 2cqi, 20px);
+      row-gap: 0;
+    }
+    .charts > .card {
+      display: grid;
+      grid-row: span 5;
+      grid-template-rows: subgrid;   /* title, description, extra row, chart, footer */
+    }
+    .panel { background: var(--panel); padding: 35px; display: flex; flex-direction: column; gap: 20px; color: #ffffff; font-style: bold; }
     .right { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
     .card { background: var(--panel); padding: 16px; background-color: #e5f3f7 }
 
@@ -199,9 +219,9 @@ export class NanoflexionCalculator extends LitElement {
     .result-label { font-size: 1rem; color: #64ea81; }
     .result-value { font-size: 2rem; font-weight: 700; margin-top: 6px; color: #ffffff;}
 
-    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 1rem; margin-bottom: 6px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.8rem; margin-bottom: 6px; }
     .box { display: inline-flex; align-items: center; gap: 2px; background: #3A585F; border: 1px solid #cbc9c9;
-           border-radius: 3px; padding: 1px 6px; font-size: 0.9rem; white-space: nowrap; }
+           border-radius: 3px; padding: 1px 6px; font-size: 0.9rem; white-space: nowrap; flex: none; }
     .box input { width: 6ch; border: 0; background: transparent; text-align: right; font: inherit; color: inherit;
                  -moz-appearance: textfield; }
     .box input::-webkit-outer-spin-button,
@@ -227,15 +247,18 @@ export class NanoflexionCalculator extends LitElement {
     button { align-self: flex-start; padding: 10px 36px; background: var(--accent); border: 1px solid #333;
              border-radius: 6px; font: inherit; cursor: pointer; }
 
-    @container (max-width: 720px) {
-      .calc { padding: 12px; }
-      .grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-      .panel { padding: 16px; gap: 18px; }
-      .card { padding: 12px; }
-      .right { gap: 12px; }
-    }
+  @container (max-width: 1000px) {
+    .charts { grid-template-columns: minmax(0, 1fr); row-gap: clamp(12px, 2cqi, 20px); }
+    .charts > .card { display: block; grid-row: auto; }
+  }
 
-  .label-group { display: flex; align-items: center; gap: 6px; }
+  @container (max-width: 720px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .panel { position: static; padding: 16px; gap: 18px; }
+    .card { padding: 12px; }
+  }
+
+  .label-group { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
   .help { position: relative; display: inline-flex; }
   .help-btn {
     padding: 0; width: 18px; height: 18px; border-radius: 50%;

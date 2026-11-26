@@ -39,7 +39,7 @@ export function calculate(v: Values): Results {
   const N = C.monthsPerYear * m;          // procedures per year
   const p = v.leakRate / 100;             // % to probability
   const CL = v.leakCost;
-  const P = v.patchPrice;
+  const P = 500;
   const { leakReduction: e, patchesPerCase: q, implementationCost: I } = C;
 
   // Monthly costs
